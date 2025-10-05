@@ -10,6 +10,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from pydantic import BaseModel
 from .base_dto import BaseDTO
 
+# Custom exceptions
+class NotValidModelPassed(Exception):
+    pass
+
+
 # DTO types
 D = TypeVar("D", bound=BaseDTO)
 
@@ -67,14 +72,16 @@ def entity_to_dto(entity_instance: E, dto_cls: Type[D]) -> D:
     Raises:
         ValidationError
     """
-    return dto_cls.model_validate(entity_instance)
+    if not is_dataclass(entity_instance):
+        raise TypeError(f"entity_instance must be a dataclass, got {type(entity_instance)}")
+    return dto_cls.model_validate(asdict(entity_instance))
 
 
 def entity_to_dtos(entities_instances: List[E], dto_cls: Type[D]) -> List[D]:
-    return [dto_cls.model_validate(entity_instance) for entity_instance in entities_instances]
+    return [entity_to_dto(entity_instance, dto_cls) for entity_instance in entities_instances]
 
 
-def dto_to_entity(dto_instance: BaseDTO, entity_cls: Type[E], field_map: dict[str, Type[E]] = None) -> E:
+def dto_to_entity(dto_instance: BaseDTO, entity_cls: Type[E], field_map: Optional[dict[str, Type[E]]] = None) -> E:
 
     data = dto_instance.model_dump(exclude_unset=True, exclude_none=True)
 
