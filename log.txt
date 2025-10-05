@@ -1,0 +1,7 @@
+{
+    "first_name": "validuser",
+    "age": 18,
+    "gender": {
+        "gender": "male"
+    }
+}
