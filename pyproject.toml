@@ -1,7 +1,7 @@
 [project]
 name = "entitydtoconverter"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "This library provides bidirectional conversion utilities to maintain clean architecture boundaries while minimizing boilerplate code."
 readme = "README.md"
 authors = [
     { name = "thawancomt", email = "thawancomt@gmail.com" }

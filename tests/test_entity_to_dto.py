@@ -157,6 +157,40 @@ class Test_Entity2DTO:
         assert entity_again.first_name == person_entity_instance.first_name
         assert entity_again.age == person_entity_instance.age
 
+    
+    def test_entity_to_dto_nested(self):
+        @dataclass   
+        class ShelterEntity:
+            name : str
+            adress : str # 1
+        @dataclass
+        class DogEntity:
+            name : str
+            shelter : ShelterEntity # 1
+
+        
+        class ShelterDTO(BaseModel): # 2
+            name : str
+            adress : str 
+        
+        class DogDTO(BaseModel):
+            name : str
+            shelter : ShelterDTO # 2
+
+
+        s_en = ShelterEntity(name="home", adress="home 123")
+        d_en = DogEntity(name="Kleber", shelter=s_en)
+
+        result = entity_to_dto(d_en, DogDTO)
+
+        DogDTO(**asdict(d_en))
+
+        import json
+        with open("log.txt", "w", encoding="utf-8") as f:
+            f.write(
+                json.dumps(result.model_dump(mode="json"))
+            )
+
     def test_entity_to_dto_with_nested_objects(self, person_with_gender_entity_instance):
         """Test entity to DTO conversion with nested objects"""
         dto = entity_to_dto(person_with_gender_entity_instance, PersonWithGenderDTO)

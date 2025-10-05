@@ -11,6 +11,8 @@ from pydantic import BaseModel
 from .base_dto import BaseDTO
 
 # Custom exceptions
+
+
 class NotValidModelPassed(Exception):
     pass
 
@@ -73,7 +75,8 @@ def entity_to_dto(entity_instance: E, dto_cls: Type[D]) -> D:
         ValidationError
     """
     if not is_dataclass(entity_instance):
-        raise TypeError(f"entity_instance must be a dataclass, got {type(entity_instance)}")
+        raise TypeError(
+            f"entity_instance must be a dataclass, got {type(entity_instance)}")
     return dto_cls.model_validate(asdict(entity_instance))
 
 
@@ -88,9 +91,11 @@ def dto_to_entity(dto_instance: BaseDTO, entity_cls: Type[E], field_map: Optiona
     if field_map:
         for field, adapter in field_map.items():
             if is_dataclass(adapter):
-                data[field] = dto_to_entity(getattr(dto_instance, field), adapter)
+                data[field] = dto_to_entity(
+                    getattr(dto_instance, field), adapter)
             else:
-                raise TypeError(f"Field : {field} is not a valid DTO, instead: {type(field)} : type: {adapter}")
+                raise TypeError(
+                    f"Field : {field} is not a valid DTO, instead: {type(field)} : type: {adapter}")
 
     return entity_cls(**data)
 
@@ -204,8 +209,33 @@ def get_raw_by(
 
 
 def m2m_to_entities(entity_cls: Type[E], remap=None, field_map=None):
+    """
+    Ease way to convert a M2M field into entities for example:
+
+    return [
+        model_to_entity(
+                professional,
+                ProfessionalEntity,
+                field_mapping={"service_categories": "categories"},
+                adapters={
+                    "categories": helpers.m2m_to_entities(ServiceCategoryEntity)
+                }
+            )
+
+            for professional in Professional.objects.all()
+        ]
+
+
+    This function will receive a m2m relatedManager in model_to_entity adapter logic.
+
+    Its similiar to use field_map in dto_to_entity but this time, automatically
+        
+    """
     def _innner(manager):
-        return [model_to_entity(model_instance=model_instance, entity_cls=entity_cls, field_mapping=remap,
-                                adapters=field_map) for model_instance in manager.all()]
+        return [
+            model_to_entity(model_instance=model_instance,
+                            entity_cls=entity_cls, field_mapping=remap, adapters=field_map)
+
+            for model_instance in manager.all()]
 
     return _innner
